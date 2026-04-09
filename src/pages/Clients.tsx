@@ -30,7 +30,7 @@ const Clients = () => {
   const fetchClients = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/clients", {
+      const res = await fetch("https://invoiceai-backend-oe0z.onrender.com/clients", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -54,7 +54,7 @@ const Clients = () => {
     }
     setSaving(true);
     try {
-      const res = await fetch("http://localhost:8000/clients", {
+      const res = await fetch("https://invoiceai-backend-oe0z.onrender.com/clients", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

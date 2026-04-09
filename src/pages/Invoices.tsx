@@ -29,7 +29,7 @@ const Invoices = () => {
   const fetchInvoices = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/invoices", {
+      const res = await fetch("https://invoiceai-backend-oe0z.onrender.com/invoices", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -49,7 +49,7 @@ const Invoices = () => {
   const handleDownload = async (invoice: Invoice) => {
     setDownloadingId(invoice.id);
     try {
-      const res = await fetch(`http://localhost:8000/invoices/${invoice.id}/pdf`, {
+      const res = await fetch(`https://invoiceai-backend-oe0z.onrender.com/invoices/${invoice.id}/pdf`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Failed to generate PDF.");

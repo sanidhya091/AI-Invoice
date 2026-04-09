@@ -55,7 +55,7 @@ const NewInvoice = () => {
     }
     setAiLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/ai/suggest", {
+      const response = await fetch("https://invoiceai-backend-oe0z.onrender.com/ai/suggest", {
           method: "POST",
           headers: { 
           "Content-Type": "application/json",
@@ -82,7 +82,7 @@ const NewInvoice = () => {
   try {
     const token = localStorage.getItem("token");
     const invoiceNumber = `INV-${Date.now()}`;
-    const response = await fetch("http://localhost:8000/invoices", {
+    const response = await fetch("https://invoiceai-backend-oe0z.onrender.com/invoices", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({
@@ -108,7 +108,7 @@ const handleDownloadPdf = async () => {
     return;
   }
   const token = localStorage.getItem("token");
-  const response = await fetch(`http://localhost:8000/invoices/${savedInvoiceId}/pdf`, {
+  const response = await fetch(`https://invoiceai-backend-oe0z.onrender.com/invoices/${savedInvoiceId}/pdf`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!response.ok) {
