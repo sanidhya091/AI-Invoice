@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface LineItem {
@@ -31,6 +30,8 @@ const NewInvoice = () => {
   const [dueDate, setDueDate] = useState("");
   const [lineItems, setLineItems] = useState<LineItem[]>([createLineItem()]);
   const [aiLoading, setAiLoading] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [savedInvoiceId, setSavedInvoiceId] = useState<string | null>(null);
 
   const updateLineItem = (id: string, field: keyof LineItem, value: string | number) => {
     setLineItems((prev) =>
@@ -54,11 +55,16 @@ const NewInvoice = () => {
     }
     setAiLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("suggest-description", {
-        body: { description: serviceDescription },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      const response = await fetch("http://localhost:8000/ai/suggest", {
+          method: "POST",
+          headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+  body: JSON.stringify({ description: serviceDescription }),
+});
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail);
       if (data?.suggestion) {
         setServiceDescription(data.suggestion);
         toast.success("Description improved by AI!");
@@ -69,6 +75,54 @@ const NewInvoice = () => {
       setAiLoading(false);
     }
   };
+  const handleSaveDraft = async () => {
+  if (!clientName.trim()) { toast.error("Please enter a client name."); return; }
+  if (subtotal === 0) { toast.error("Please add a line item with an amount."); return; }
+  setSavingDraft(true);
+  try {
+    const token = localStorage.getItem("token");
+    const invoiceNumber = `INV-${Date.now()}`;
+    const response = await fetch("http://localhost:8000/invoices", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        invoice_number: invoiceNumber,
+        description: serviceDescription || lineItems.map(i => i.description).join(", "),
+        amount: subtotal,
+        due_date: dueDate ? new Date(dueDate).toISOString() : null,
+      }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail);
+    setSavedInvoiceId(data.id);
+    toast.success(`Draft saved! Invoice #${invoiceNumber}`);  
+  } catch (e: any) {
+    toast.error(e.message || "Failed to save draft.");
+  } finally {
+    setSavingDraft(false);
+  }
+};
+const handleDownloadPdf = async () => {
+  if (!savedInvoiceId) {
+    toast.error("Save the draft first before downloading.");
+    return;
+  }
+  const token = localStorage.getItem("token");
+  const response = await fetch(`http://localhost:8000/invoices/${savedInvoiceId}/pdf`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) {
+    toast.error("Failed to generate PDF.");
+    return;
+  }
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `invoice-${savedInvoiceId}.pdf`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
 
   return (
     <div className="max-w-4xl">
@@ -232,7 +286,12 @@ const NewInvoice = () => {
               />
             </div>
             <div className="flex gap-3">
-              <Button variant="outline">Save Draft</Button>
+              <Button variant="outline" onClick={handleSaveDraft} disabled={savingDraft}>
+                {savingDraft ? "Saving..." : "Save Draft"}
+              </Button>
+              <Button variant="outline" onClick={handleDownloadPdf} disabled={!savedInvoiceId}>
+                Download PDF
+              </Button>
               <Link to="/invoices/preview">
                 <Button className="gap-2">
                   <Eye className="w-4 h-4" />

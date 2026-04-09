@@ -1,5 +1,5 @@
-import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, FilePlus, Users, FileText, Zap } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { LayoutDashboard, FilePlus, Users, FileText, Zap, LogOut } from "lucide-react";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -10,6 +10,13 @@ const navItems = [
 
 const AppSidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
 
   return (
     <aside className="fixed left-0 top-0 bottom-0 w-64 bg-sidebar flex flex-col z-50">
@@ -42,12 +49,20 @@ const AppSidebar = () => {
         })}
       </nav>
 
-      <div className="p-4 mx-3 mb-4 rounded-lg bg-sidebar-accent">
+      <div className="p-4 mx-3 rounded-lg bg-sidebar-accent">
         <p className="text-xs font-medium text-sidebar-accent-foreground">AI-Powered</p>
         <p className="text-xs text-sidebar-muted mt-1">
           Generate professional invoices in seconds with AI assistance.
         </p>
       </div>
+
+      <button
+        onClick={handleLogout}
+        className="flex items-center gap-3 px-6 py-4 text-sm font-medium text-sidebar-foreground hover:text-red-400 transition-colors"
+      >
+        <LogOut className="w-4 h-4" />
+        Logout
+      </button>
     </aside>
   );
 };
