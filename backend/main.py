@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from groq import Groq
 from datetime import datetime, timedelta, timezone
 from jose import jwt, JWTError
-from passlib.context import CryptContext
+import bcrypt
 import os
 import uuid
 from fastapi.responses import StreamingResponse
@@ -39,7 +39,6 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
@@ -75,10 +74,10 @@ class ClientCreate(BaseModel):
 # ---------- Helpers ----------
 
 def hash_password(password: str):
-    return pwd_context.hash(password)
+     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
 def verify_password(plain: str, hashed: str):
-    return pwd_context.verify(plain, hashed)
+    return bcrypt.checkpw(plain.encode('utf-8'), hashed.encode('utf-8'))
 
 def create_token(data: dict):
     to_encode = data.copy()
