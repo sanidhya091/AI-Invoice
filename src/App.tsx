@@ -1,3 +1,4 @@
+import ProtectedRoute from "./components/ProtectedRoute";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -9,6 +10,8 @@ import NewInvoice from "./pages/NewInvoice";
 import Clients from "./pages/Clients";
 import Invoices from "./pages/Invoices";
 import NotFound from "./pages/NotFound";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 
 const queryClient = new QueryClient();
 
@@ -19,12 +22,18 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route element={<AppLayout />}>
-            <Route path="/" element={<Index />} />
-            <Route path="/invoices/new" element={<NewInvoice />} />
-            <Route path="/clients" element={<Clients />} />
-            <Route path="/invoices" element={<Invoices />} />
-          </Route>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route element={
+  <ProtectedRoute>
+    <AppLayout />
+  </ProtectedRoute>
+}>
+  <Route path="/" element={<Index />} />
+  <Route path="/invoices/new" element={<NewInvoice />} />
+  <Route path="/clients" element={<Clients />} />
+  <Route path="/invoices" element={<Invoices />} />
+</Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
